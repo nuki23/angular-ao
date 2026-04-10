@@ -1,0 +1,58 @@
+<div class="flex flex-col items-center gap-4 py-1">
+
+    <!-- Icon badge -->
+    @if (params.icon?.name !== '') {
+    <div class="icon-badge relative w-20 h-20 rounded-full flex items-center justify-center"
+        [ngClass]="!!params.icon?.container ? params.icon?.container : 'text-blue-500'">
+        <div class="absolute inset-0 rounded-full bg-current opacity-[0.1]"></div>
+        <ng-icon [name]="
+            params.icon?.name == 'info'    ? 'lucideInfo'    :
+            params.icon?.name == 'code'    ? 'lucideCode2'    :
+            params.icon?.name == 'trash'   ? 'lucideTrash'   :
+            params.icon?.name == 'check'   ? 'lucideCheck'    :
+            params.icon?.name == 'error'   ? 'lucideX'   :
+            params.icon?.name == 'clock'   ? 'lucideClock'        :
+            params.icon?.name == 'more'    ? 'lucideMoreHorizontal'    :
+            params.icon?.name == 'message' ? 'lucideMessageCircle' :
+            params.icon?.name == 'warning' ? 'lucideMessageCircleWarning'      :
+            'lucideInfo'
+        " class="text-[2.5rem]! flex relative z-10"></ng-icon>
+    </div>
+    }
+
+    <!-- Text content -->
+    <div class="w-full flex flex-col gap-1.5 text-center px-1">
+        @if (params.titleBold) {
+        <p class="text-slate-800 text-[1.05rem] font-bold leading-snug" [innerHTML]="params.titleBold"></p>
+        }
+        @if (params.title) {
+        <p class="text-slate-800 text-[1.05rem] leading-snug" [innerHTML]="params.title"></p>
+        }
+        @if (params.text) {
+        <p class="text-slate-500 text-sm leading-relaxed mt-0.5" [innerHTML]="params.text"></p>
+        }
+        @if (params.subText) {
+        <p class="text-slate-700 text-sm font-semibold" [innerHTML]="params.subText"></p>
+        }
+    </div>
+
+    <!-- Buttons -->
+    <div class="w-full flex gap-2">
+        @if (params.cancelButton) {
+        <button nz-button class="flex-1 h-10! rounded-full!" nzType="default" (click)="cancel()">
+            {{ params.cancelButton.text }}
+        </button>
+        }
+        @if (params.exitButton) {
+        <button nz-button class="flex-1 h-10! rounded-full!" nzType="primary" nzDanger (click)="Exit()">
+            {{ params.exitButton.text }}
+        </button>
+        }
+        @if (params.confirmButton) {
+        <button nz-button class="flex-1 h-10! rounded-full!" nzType="primary" (click)="confirm()">
+            {{ params.confirmButton.text }}
+        </button>
+        }
+    </div>
+
+</div>
