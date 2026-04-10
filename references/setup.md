@@ -10,7 +10,7 @@ Instalar dependencias del stack:
 
 ```bash
 npm install ng-zorro-antd
-npm install @ng-icons/core @ng-icons/lucide
+npm install lucide-angular
 npm install tailwindcss @tailwindcss/vite   # Tailwind v4
 ```
 
@@ -66,6 +66,34 @@ import {
 
 export const icons = [MenuFoldOutline, MenuUnfoldOutline, DashboardOutline, FormOutline];
 ```
+
+---
+
+## lucide-angular — iconos en componentes
+
+Los iconos Lucide se importan directamente en cada componente (no se registran globalmente).
+
+**En el componente:**
+```typescript
+import { LucideAngularModule, ArrowLeft, Eye, Ellipsis } from 'lucide-angular';
+
+@Component({
+  imports: [LucideAngularModule, /* ... */],
+})
+export class MyComponent {
+  readonly ArrowLeft = ArrowLeft;
+  readonly Eye       = Eye;
+  readonly Ellipsis  = Ellipsis;
+}
+```
+
+**En el template:**
+```html
+<lucide-icon [img]="ArrowLeft" [size]="18" />
+<lucide-icon [img]="Eye" [size]="18" class="icon-action" />
+```
+
+> Usar siempre `[img]` (no `[name]`). Exponer cada icono como propiedad `readonly` de la clase para que sea accesible desde el template.
 
 ---
 
