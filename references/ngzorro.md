@@ -141,7 +141,7 @@ Breakpoints: `nzXs` < 576, `nzSm` ≥ 576, `nzMd` ≥ 768, `nzLg` ≥ 992, `nzXl
 ```html
 <div nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click" nzPlacement="bottomRight">
   <button nz-button nzType="text">
-    <ng-icon name="lucideEllipsisVertical"></ng-icon>
+    <fa-icon [icon]="faEllipsisVertical" />
   </button>
 </div>
 

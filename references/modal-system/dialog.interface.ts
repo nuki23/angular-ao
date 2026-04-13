@@ -1,20 +1,10 @@
 export interface Dialog {
   icon?: {
-    name?:
-    string |
-    'info' |
-    'code' |
-    'trash' |
-    'check' |
-    'error' |
-    'clock' |
-    'more' |
-    'message';
+    name?: any;
     container: string;
   };
-  title?: string;
-  titleBold?: string;
   text?: string;
+  textBold?: string;
   subText?: string;
   gridButton?: number,
   confirmButton?: {

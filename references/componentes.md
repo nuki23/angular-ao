@@ -4,8 +4,8 @@
 
 ```typescript
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { NgIconComponent, provideIcons }     from '@ng-icons/core';
-import { lucideSearch }                      from '@ng-icons/lucide';
+import { FaIconComponent }                   from '@fortawesome/angular-fontawesome';
+import { faMagnifyingGlass }                 from '@fortawesome/pro-solid-svg-icons';
 import { NzButtonModule }                    from 'ng-zorro-antd/button';
 import { NzInputModule }                     from 'ng-zorro-antd/input';
 import { ReactiveFormsModule }               from '@angular/forms';
@@ -15,12 +15,9 @@ import { ReactiveFormsModule }               from '@angular/forms';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    NgIconComponent,
+    FaIconComponent,
     NzButtonModule,
     NzInputModule,
-  ],
-  viewProviders: [
-    provideIcons({ lucideSearch })   // iconos lucide — registrar aquí, no globalmente
   ],
   templateUrl: './my-component.html',
   styleUrl: './my-component.css',
@@ -28,6 +25,7 @@ import { ReactiveFormsModule }               from '@angular/forms';
 export class MyComponent implements OnInit {
   private myService = inject(MyService);   // DI via inject(), no constructor
 
+  readonly faMagnifyingGlass = faMagnifyingGlass;
   loading = signal(false);
 
   ngOnInit(): void { /* ... */ }
@@ -82,23 +80,27 @@ export class MyService extends BaseHttpService {
 
 ---
 
-## viewProviders — iconos lucide por componente
+## FA Pro — iconos por componente
 
-Los iconos de `@ng-icons/lucide` se registran **localmente** en cada componente:
+Importar `FaIconComponent` en `imports[]` y declarar cada ícono como propiedad `readonly`:
 
 ```typescript
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { lucideUser, lucideTrash, lucideSave } from '@ng-icons/lucide';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faUser, faTrash, faFloppyDisk } from '@fortawesome/pro-solid-svg-icons';
 
 @Component({
-  imports: [NgIconComponent],
-  viewProviders: [provideIcons({ lucideUser, lucideTrash, lucideSave })],
+  imports: [FaIconComponent],
 })
+export class MyComponent {
+  readonly faUser        = faUser;
+  readonly faTrash       = faTrash;
+  readonly faFloppyDisk  = faFloppyDisk;
+}
 ```
 
 ```html
-<ng-icon name="lucideUser"  class="text-base!"></ng-icon>
-<ng-icon name="lucideTrash" class="text-[1.2rem]! text-red-500!"></ng-icon>
+<fa-icon [icon]="faUser"  class="text-base" />
+<fa-icon [icon]="faTrash" class="text-rose-500" />
 ```
 
 ---
@@ -125,20 +127,23 @@ export class MyModalComponent {
 ## Template inline (para layouts pequeños)
 
 ```typescript
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faUser } from '@fortawesome/pro-solid-svg-icons';
+
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [NgIconComponent, NzDropdownModule],
-  viewProviders: [provideIcons({ lucideUser })],
+  imports: [FaIconComponent, NzDropdownModule],
   styles: [`.trigger { cursor: pointer; }`],
   template: `
     <div class="flex items-center gap-2 px-4">
-      <ng-icon name="lucideUser"></ng-icon>
+      <fa-icon [icon]="faUser" />
       <span>{{ userName }}</span>
     </div>
   `,
 })
 export class HeaderComponent {
+  readonly faUser = faUser;
   userName = 'Usuario';
 }
 ```

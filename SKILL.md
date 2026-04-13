@@ -2,7 +2,7 @@
 name: angular-ao
 description: >
   Estándares y patrones para proyectos Angular 21 standalone/zoneless con ng-zorro,
-  Tailwind v4 y @ng-icons/lucide. Aplica automáticamente cuando el usuario trabaja
+  Tailwind v4 y @fortawesome/pro. Aplica automáticamente cuando el usuario trabaja
   en código Angular — componentes, rutas, formularios, HTTP, modales.
 user-invocable: false
 ---
@@ -19,7 +19,7 @@ Aplica estas reglas en CADA tarea Angular. No pedir confirmación; aplicarlas di
 - Siempre **standalone: true**. Nunca NgModules.
 - DI con **inject()** en el cuerpo de la clase. Solo usar constructor cuando se necesita `super()`.
 - **Control flow nativo**: `@if`, `@for`, `@switch`. Nunca `*ngIf`, `*ngFor`.
-- Iconos lucide: registrar en **viewProviders** del componente, no globalmente.
+- Iconos FA Pro: importar `FaIconComponent` en `imports[]` del componente. Sin viewProviders ni registro global.
 
 ### Signals
 - Estado local: **signal()** + `.set()` / `.update()`.
@@ -48,11 +48,11 @@ Aplica estas reglas en CADA tarea Angular. No pedir confirmación; aplicarlas di
 - Módulos ng-zorro: importar directamente en `imports[]` del componente.
 
 ### Iconos
-- **`lucide-angular`** para todo icono de contenido o acción.
-  - Importar cada ícono como constante: `import { Truck, Plus } from 'lucide-angular'`
-  - Exponer como propiedad readonly en la clase: `readonly TruckIcon = Truck`
-  - Usar en template: `<lucide-icon [img]="TruckIcon" [size]="16" />`
-  - Importar `LucideAngularModule` en el `imports[]` del componente
+- **Font Awesome Pro** para todo icono de contenido o acción.
+  - Importar el ícono desde el paquete de estilo deseado: `import { faTruck, faPlus } from '@fortawesome/pro-solid-svg-icons'`
+  - Exponer como propiedad readonly en la clase: `readonly faTruck = faTruck`
+  - Usar en template: `<fa-icon [icon]="faTruck" />`
+  - Importar `FaIconComponent` en el `imports[]` del componente (sin viewProviders)
 - **`<span nz-icon nzType="...">`** solo para iconos internos de ng-zorro (inputs, selects, etc.)
 - Para íconos interactivos: añadir clase `.icon-action`
 
@@ -66,10 +66,10 @@ Aplica estas reglas en CADA tarea Angular. No pedir confirmación; aplicarlas di
 ## Stack del proyecto
 
 ```
-Angular 21       standalone · zoneless · signals-first
-ng-zorro-antd    UI components
-Tailwind v4      utilidades + @theme tokens
-lucide-angular   iconografía
+Angular 21          standalone · zoneless · signals-first
+ng-zorro-antd       UI components
+Tailwind v4         utilidades + @theme tokens
+@fortawesome/pro    iconografía
 ```
 
 ---

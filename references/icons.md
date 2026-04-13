@@ -4,52 +4,67 @@
 
 | Sistema | Usar para |
 |---------|-----------|
-| `<lucide-icon>` (`lucide-angular`) | Todo icono de contenido, acción o UI |
+| `<fa-icon>` (`@fortawesome/angular-fontawesome`) | Todo icono de contenido, acción o UI |
 | `<span nz-icon>` | Solo iconos **internos de ng-zorro** (spinner nativo, etc.) |
 
 ---
 
-## lucide-angular — uso por componente
+## Font Awesome Pro — uso por componente
 
-Importar cada ícono como constante directamente desde `lucide-angular`:
+Importar `FaIconComponent` en `imports[]` y cada ícono como constante desde el paquete de estilo:
 
 ```typescript
-import { LucideAngularModule, Truck, Plus, Eye, Edit, Trash2 } from 'lucide-angular';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faTruck, faPlus, faEye, faPen, faTrash } from '@fortawesome/pro-solid-svg-icons';
 
 @Component({
-  imports: [LucideAngularModule],
+  imports: [FaIconComponent],
 })
 export class MyComponent {
-  readonly TruckIcon = Truck;
-  readonly PlusIcon  = Plus;
-  readonly EyeIcon   = Eye;
+  readonly faTruck = faTruck;
+  readonly faPlus  = faPlus;
+  readonly faEye   = faEye;
 }
 ```
+
+---
+
+## Paquetes de estilo disponibles
+
+| Paquete | Prefijo importación | Descripción |
+|---------|---------------------|-------------|
+| `@fortawesome/pro-solid-svg-icons` | `fa...` | Sólido — mayor peso visual |
+| `@fortawesome/pro-regular-svg-icons` | `fa...` | Regular — uso general |
+| `@fortawesome/pro-light-svg-icons` | `fa...` | Fino — decorativo |
+| `@fortawesome/free-solid-svg-icons` | `fa...` | Gratuito (sin Pro) |
+
+> Mezclar estilos en el mismo componente es válido: importar de distintos paquetes según el ícono.
 
 ---
 
 ## Uso en template
 
 ```html
-<!-- Tamaño con [size] -->
-<lucide-icon [img]="TruckIcon" [size]="14"></lucide-icon>   <!-- 14px -->
-<lucide-icon [img]="PlusIcon"  [size]="16"></lucide-icon>   <!-- 16px -->
-<lucide-icon [img]="EyeIcon"   [size]="20"></lucide-icon>   <!-- 20px -->
+<!-- Básico -->
+<fa-icon [icon]="faTruck" />
+<fa-icon [icon]="faPlus" />
+
+<!-- Tamaño con Tailwind -->
+<fa-icon [icon]="faTruck" class="text-sm" />   <!-- ~14px -->
+<fa-icon [icon]="faPlus"  class="text-base" />  <!-- ~16px -->
+<fa-icon [icon]="faEye"   class="text-xl" />    <!-- ~20px -->
 
 <!-- Color con Tailwind -->
-<lucide-icon [img]="TruckIcon" [size]="16" class="text-white"></lucide-icon>
-<lucide-icon [img]="Trash2Icon" [size]="16" class="text-rose-500"></lucide-icon>
-<lucide-icon [img]="InfoIcon"   [size]="16" class="text-slate-400"></lucide-icon>
-
-<!-- Stroke width -->
-<lucide-icon [img]="TruckIcon" [size]="18" [strokeWidth]="2"></lucide-icon>
+<fa-icon [icon]="faTruck"  class="text-white" />
+<fa-icon [icon]="faTrash"  class="text-rose-500" />
+<fa-icon [icon]="faCircleInfo" class="text-slate-400" />
 
 <!-- Icono interactivo (cursor + feedback visual) -->
-<lucide-icon [img]="EyeIcon" [size]="16" class="icon-action" (click)="ver(item)"></lucide-icon>
+<fa-icon [icon]="faEye" class="icon-action" (click)="ver(item)" />
 
 <!-- Inline con botón -->
 <button nz-button nzType="primary">
-  <lucide-icon [img]="PlusIcon" [size]="14" class="mr-1"></lucide-icon>
+  <fa-icon [icon]="faPlus" class="mr-1 text-sm" />
   Crear
 </button>
 ```
@@ -81,26 +96,26 @@ providers: [provideNzIcons(icons)]
 
 ---
 
-## Iconos lucide más útiles
+## Íconos FA Pro más útiles
 
 ```typescript
 // Navegación
-ArrowLeft, ArrowRight, ChevronDown, ChevronRight
-LogOut, Settings, User, CircleUser
+faArrowLeft, faArrowRight, faChevronDown, faChevronRight
+faRightFromBracket, faGear, faUser, faCircleUser
 
 // CRUD
-Plus, Edit, Pencil, Trash2, Save
-Eye, EyeOff, X, Check, Ellipsis
+faPlus, faPen, faPencil, faTrash, faFloppyDisk
+faEye, faEyeSlash, faXmark, faCheck, faEllipsis
 
 // Estado
-Loader, Clock, Info, CircleAlert
-CircleCheck, CircleX, TriangleAlert
+faSpinner, faClock, faCircleInfo, faCircleExclamation
+faCircleCheck, faCircleXmark, faTriangleExclamation
 
 // Interfaz
-Search, Funnel, ListFilter, Menu
-EllipsisVertical, Grid, List
+faMagnifyingGlass, faFilter, faBarsFilter, faBars
+faEllipsisVertical, faTableCells, faList
 
 // Contenido
-FileText, Image, Download, Upload
-MapPin, Mail, Phone, Lock
+faFileLines, faImage, faDownload, faUpload
+faLocationDot, faEnvelope, faPhone, faLock
 ```

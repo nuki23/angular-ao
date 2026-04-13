@@ -1,6 +1,6 @@
 # angular-ao
 
-Skill de Angular 21 para Claude Code — patrones standalone/zoneless con ng-zorro, Tailwind v4 y @ng-icons/lucide.
+Skill de Angular 21 para Claude Code — patrones standalone/zoneless con ng-zorro, Tailwind v4 y @fortawesome/pro.
 
 ## Instalación
 
@@ -30,7 +30,7 @@ references/
 ├── forms.md                      ← formularios reactivos, validación
 ├── http.md                       ← BaseHttpService, interceptores
 ├── ngzorro.md                    ← módulos, componentes, theme.less
-├── icons.md                      ← @ng-icons/lucide vs nz-icon
+├── icons.md                      ← @fortawesome/pro vs nz-icon
 └── modal-system/                 ← código copy-paste del sistema de modales
     ├── README.md                 ← instrucciones de instalación y uso
     ├── dialog.interface.ts

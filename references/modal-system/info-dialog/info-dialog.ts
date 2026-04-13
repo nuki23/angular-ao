@@ -1,45 +1,25 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { Dialog } from '@core/models/dialog.interface';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faCircleInfo } from '@fortawesome/pro-solid-svg-icons';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import {
-  lucideClock,
-  lucideCode2,
-  lucideMessageCircleWarning,
-  lucideTrash,
-  lucideCheck,
-  lucideInfo,
-  lucideX,
-  lucideMoreHorizontal,
-  lucideMessageCircle
-} from '@ng-icons/lucide';
 
 @Component({
   selector: 'app-info-dialog',
   imports: [
     CommonModule,
-    NgIcon,
+    FaIconComponent,
     NzButtonModule
   ],
   templateUrl: './info-dialog.html',
   styleUrl: './info-dialog.css',
-  viewProviders: [
-    provideIcons({
-      lucideCode2,
-      lucideTrash,
-      lucideCheck,
-      lucideInfo,
-      lucideX,
-      lucideClock,
-      lucideMoreHorizontal,
-      lucideMessageCircle,
-      lucideMessageCircleWarning
-    })
-  ],
 })
-export class InfoDialog {
+export class InfoDialog implements OnInit {
+  // fallback icon — el icono real viene en params.icon.name como IconDefinition
+  readonly faCircleInfo = faCircleInfo;
+
   @Input() params: Dialog;
   @Input() type: any;
   readonly nzModalData: any = inject(NZ_MODAL_DATA);
@@ -48,8 +28,21 @@ export class InfoDialog {
     this.params = this.nzModalData.params
   }
 
-  confirm(): void { this.modal.close(true); }
-  Exit(): void    { this.modal.close({ exit: true }); }
-  cancel(): void  { this.modal.close(false); }
-  closeDialog(data: any) { this.modal.close(data); }
+  ngOnInit(): void {}
+
+  confirm(): void {
+    this.modal.close(true);
+  }
+
+  Exit(): void {
+    this.modal.close({ exit: true });
+  }
+
+  cancel(): void {
+    this.modal.close(false);
+  }
+
+  closeDialog(data: any) {
+    this.modal.close(data);
+  }
 }

@@ -10,9 +10,16 @@ Instalar dependencias del stack:
 
 ```bash
 npm install ng-zorro-antd
-npm install lucide-angular
 npm install tailwindcss @tailwindcss/vite   # Tailwind v4
+npm install @fortawesome/angular-fontawesome @fortawesome/fontawesome-svg-core
+npm install @fortawesome/pro-solid-svg-icons @fortawesome/pro-regular-svg-icons @fortawesome/pro-light-svg-icons
 ```
+
+> **Font Awesome Pro requiere token NPM.** Agregar `.npmrc` en la raíz del proyecto:
+> ```
+> @fortawesome:registry=https://npm.fontawesome.com/
+> //npm.fontawesome.com/:_authToken=TU_TOKEN_FA_PRO
+> ```
 
 ---
 
@@ -69,31 +76,32 @@ export const icons = [MenuFoldOutline, MenuUnfoldOutline, DashboardOutline, Form
 
 ---
 
-## lucide-angular — iconos en componentes
+## Font Awesome Pro — iconos en componentes
 
-Los iconos Lucide se importan directamente en cada componente (no se registran globalmente).
+Los iconos FA Pro se importan directamente en cada componente. No se requiere registro global.
 
 **En el componente:**
 ```typescript
-import { LucideAngularModule, ArrowLeft, Eye, Ellipsis } from 'lucide-angular';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faArrowLeft, faEye, faEllipsis } from '@fortawesome/pro-solid-svg-icons';
 
 @Component({
-  imports: [LucideAngularModule, /* ... */],
+  imports: [FaIconComponent, /* ... */],
 })
 export class MyComponent {
-  readonly ArrowLeft = ArrowLeft;
-  readonly Eye       = Eye;
-  readonly Ellipsis  = Ellipsis;
+  readonly faArrowLeft = faArrowLeft;
+  readonly faEye       = faEye;
+  readonly faEllipsis  = faEllipsis;
 }
 ```
 
 **En el template:**
 ```html
-<lucide-icon [img]="ArrowLeft" [size]="18" />
-<lucide-icon [img]="Eye" [size]="18" class="icon-action" />
+<fa-icon [icon]="faArrowLeft" />
+<fa-icon [icon]="faEye" class="icon-action" />
 ```
 
-> Usar siempre `[img]` (no `[name]`). Exponer cada icono como propiedad `readonly` de la clase para que sea accesible desde el template.
+> Exponer cada icono como propiedad `readonly` de la clase. Importar `FaIconComponent` en `imports[]`, no en `viewProviders`.
 
 ---
 
