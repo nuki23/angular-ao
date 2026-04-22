@@ -61,6 +61,29 @@ Aplica estas reglas en CADA tarea Angular. No pedir confirmación; aplicarlas di
 - El sistema de modales es idéntico en todos los proyectos.
 - Header de toda modal: clase `.modal-header` + `.modal-header__bar` + `.modal-header__title`.
 
+#### Ubicación según alcance
+
+| ¿Dónde va la modal? | Criterio |
+|---|---|
+| `pages/feature-name/modals/modal-name/` | Solo se usa dentro de esa feature |
+| `shared/modals/modal-name/` | Se reutiliza en 2+ features distintas o es genérica del sistema |
+
+```
+pages/
+└── fondeadores/
+    └── comprar-creditos/
+        ├── comprar-creditos.ts
+        └── modals/
+            └── confirmar-compra/      ← modal exclusiva de esta vista
+                ├── confirmar-compra.ts
+                └── confirmar-compra.html
+shared/
+└── modals/
+    └── cargue-masivo/                 ← modal reutilizable en múltiples features
+```
+
+**Regla**: si la modal solo tiene sentido dentro de una feature concreta, va en `pages/feature/modals/`. Moverla a `shared/modals/` solo cuando se necesite en una segunda feature distinta.
+
 ---
 
 ## Stack del proyecto
