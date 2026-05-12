@@ -1,6 +1,6 @@
 # angular-ao
 
-Skill de Angular 21 para Claude Code — patrones standalone/zoneless con ng-zorro, Tailwind v4 y @fortawesome/pro.
+Skill de Angular 21 para Claude Code — patrones standalone con zone.js + signals, ng-zorro, Tailwind v4 y @fortawesome/pro.
 
 ## Instalación
 

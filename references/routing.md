@@ -1,170 +1,121 @@
-# 04 — Routing
+# 04 - Routing
 
-## Configuración en app.config.ts
+## Configuracion global
+
+El proyecto usa hash routing:
 
 ```typescript
-import { provideRouter, withHashLocation } from '@angular/router';
-import { routes } from './app.routes';
-
-providers: [
-  provideRouter(routes, withHashLocation()),  // /#/admin/... en la URL
-]
+provideRouter(routes, withHashLocation())
 ```
 
-Sin `withHashLocation()` las URLs son normales (`/admin/...`).
+La URL protegida queda como `/#/fondeadores/...`.
 
----
+## app.routes.ts
 
-## app.routes.ts — estructura con layout
+La zona autenticada del repo vive bajo `/fondeadores`. No cambiarla a `/admin` salvo que el usuario pida una plantilla generica.
 
 ```typescript
-import { Routes, CanActivateFn } from '@angular/router';
-import { inject }                from '@angular/core';
-import { Router }                from '@angular/router';
-import { MainLayoutComponent }   from './layout/main-layout/main-layout.component';
-import { authGuard }             from './core/guards/auth.guard';
-import { AuthService }           from './core/services/auth.service';
-
-const rootGuard: CanActivateFn = () => {
-  const auth   = inject(AuthService);
-  const router = inject(Router);
-  return router.createUrlTree(
-    [auth.isAuthenticated() ? '/admin/dashboard' : '/login']
-  );
-};
+import { Routes } from '@angular/router';
+import { MainLayoutComponent } from '@pages/layout/main-layout/main-layout.component';
+import { authGuard } from '@shared/guards/auth.guard';
 
 export const routes: Routes = [
-  // Zona protegida — comparte layout (header + sidebar + outlet)
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
-    path: 'admin',
+    path: 'login',
+    loadComponent: () => import('@pages/auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'recuperar-contrasena',
+    loadComponent: () =>
+      import('@pages/auth/recuperar-contrasena/recuperar-contrasena.component').then(
+        (m) => m.RecuperarContrasenaComponent,
+      ),
+  },
+  {
+    path: 'fondeadores',
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
-        loadChildren: () =>
-          import('./pages/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
         data: { title: 'Dashboard' },
+        loadChildren: () =>
+          import('@pages/fondeadores/dashboard/dashboard-fondeadores.routes').then(
+            (m) => m.DASHBOARD_FONDEADORES_ROUTES,
+          ),
       },
       {
-        path: 'users',
+        path: 'comprar-creditos',
+        data: { title: 'Comprar creditos', backUrl: '/fondeadores/dashboard' },
         loadChildren: () =>
-          import('./pages/users/users.routes').then(m => m.USERS_ROUTES),
-        data: { title: 'Usuarios' },
+          import('@pages/fondeadores/comprar-creditos/comprar-creditos.routes').then(
+            (m) => m.COMPRAR_CREDITOS_ROUTES,
+          ),
       },
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
-  // Login sin layout
-  {
-    path: 'login',
-    loadChildren: () =>
-      import('./pages/auth/login/login.routes').then(m => m.LOGIN_ROUTES),
-  },
-  // Raíz y wildcard — redirigen según autenticación
-  { path: '',  pathMatch: 'full', canActivate: [rootGuard], component: MainLayoutComponent },
-  { path: '**',                   canActivate: [rootGuard], component: MainLayoutComponent },
 ];
 ```
 
----
+## Feature routes
 
-## Feature routes — named export
+Usar named exports:
 
 ```typescript
-// pages/users/users.routes.ts
+// pages/fondeadores/comprar-creditos/comprar-creditos.routes.ts
 import { Routes } from '@angular/router';
-import { UsersComponent } from './users.component';
 
-export const USERS_ROUTES: Routes = [
-  { path: '', component: UsersComponent }
+export const COMPRAR_CREDITOS_ROUTES: Routes = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./comprar-creditos').then((m) => m.ComprarCreditosComponent),
+  },
+  {
+    path: ':id/detalle',
+    data: { title: 'Detalle de lote', backUrl: '/fondeadores/comprar-creditos' },
+    loadComponent: () =>
+      import('./tabla-lote/tabla-lote').then((m) => m.TablaLoteComponent),
+  },
 ];
 ```
 
-```typescript
-// En app.routes.ts
-loadChildren: () => import('./pages/users/users.routes').then(m => m.USERS_ROUTES)
-```
+Usar `loadComponent` para hojas y `loadChildren` cuando la feature tiene sub-rutas.
 
----
+## Guards
 
-## Guards funcionales
-
-### authGuard — proteger rutas
+Los guards funcionales viven en `shared/guards/`:
 
 ```typescript
-// core/guards/auth.guard.ts
 import { inject } from '@angular/core';
 import { Router, type CanActivateFn } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 
 export const authGuard: CanActivateFn = () => {
-  const auth   = inject(AuthService);
-  const router = inject(Router);
-  if (auth.isAuthenticated()) return true;
-  router.navigate(['/login']);
+  if (inject(AuthService).isAuthenticated()) return true;
+  inject(Router).navigate(['/login']);
   return false;
 };
 ```
 
-### roleGuard — proteger por rol
+## Navegacion
 
 ```typescript
-export const roleGuard: CanActivateFn = (route) => {
-  const auth  = inject(AuthService);
-  const roles = route.data['roles'] as string[];
-  return roles.includes(auth.getRole());
-};
-
-// En routes:
-{ path: 'admin', canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } }
-```
-
----
-
-## Navegación programática
-
-```typescript
-export class MyComponent {
-  private router = inject(Router);
-
-  goTo(id: number) { this.router.navigate(['/admin/users', id]); }
-  goBack()         { this.router.navigate(['/admin/dashboard']); }
-  goWithParams()   { this.router.navigate(['/admin/users'], { queryParams: { page: 2 } }); }
-}
-```
-
-## RouterLink en template
-
-```html
-<a [routerLink]="['/admin/dashboard']">Dashboard</a>
-<a [routerLink]="['/admin/users', user.id]">Ver usuario</a>
-
-<li nz-menu-item [routerLink]="['/admin/profile']">Perfil</li>
-```
-
-## Leer parámetros de ruta
-
-```typescript
-private route = inject(ActivatedRoute);
-
-ngOnInit() {
-  const id = this.route.snapshot.paramMap.get('id');   // síncróno
-  this.route.params.subscribe(p => { /* reactivo */ }); // reactivo
-}
-```
-
-## Leer data de ruta (ej: título)
-
-```typescript
-private route  = inject(ActivatedRoute);
 private router = inject(Router);
 
-constructor() {
-  this.router.events.subscribe(event => {
-    if (event instanceof NavigationEnd) {
-      this.title = this.route.snapshot.firstChild?.data['title'] ?? '';
-    }
-  });
+goDashboard(): void {
+  this.router.navigate(['/fondeadores/dashboard']);
 }
+
+goDetalle(id: number): void {
+  this.router.navigate(['/fondeadores/comprar-creditos', id, 'detalle']);
+}
+```
+
+En templates, preferir rutas absolutas cuando cruzan features:
+
+```html
+<a [routerLink]="['/fondeadores/dashboard']">Dashboard</a>
 ```

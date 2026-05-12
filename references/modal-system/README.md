@@ -1,6 +1,6 @@
 # modal-system — Sistema de modales (copy-paste listo)
 
-Sistema completo de modales con ng-zorro. Se copia tal cual y funciona igual en cualquier proyecto con el mismo stack.
+Sistema completo de modales con ng-zorro. Los archivos son réplica literal de los del proyecto. Se copian tal cual y funcionan en cualquier repo con el mismo stack.
 
 ## Archivos a copiar
 
@@ -30,6 +30,8 @@ En `tsconfig.json` (aliases):
 }
 ```
 
+Si vas a usar el flujo de iconos PNG (`img.src`), asegurar que existan las imágenes referenciadas (por defecto `/message-icon/success.png`, `/error.png`, `/warning.png`, `/info.png`, `/alerta.png`).
+
 ---
 
 ## Uso básico
@@ -37,15 +39,16 @@ En `tsconfig.json` (aliases):
 ```typescript
 private messages = inject(MessagesService);
 
-// Alertas simples
+// Atajos
 this.messages.success('Guardado correctamente');
 this.messages.error('Ocurrió un error');
-this.messages.show('Sin conexión', 'warning');
+this.messages.warning('Hay datos sin guardar');
+this.messages.show('Sin conexión', 'info');
 
 // Confirmación con respuesta
 this.messages.showMessage({
-  icon: { name: 'warning', container: 'text-amber-500' },
-  titleBold: '¿Eliminar este registro?',
+  icon: { name: faTriangleExclamation, container: 'text-amber-500' },
+  textBold: '¿Eliminar este registro?',
   text: 'Esta acción no se puede deshacer.',
   confirmButton: { text: 'Sí, eliminar' },
   cancelButton:  { text: 'Cancelar' },
@@ -55,6 +58,8 @@ this.messages.showMessage({
   if (result === true) this.eliminar();
 });
 ```
+
+> El método `error()` está protegido contra spam: si ya hay un modal de error abierto, los siguientes `messages.error(...)` se ignoran hasta que el primero cierre (`isErrorOpen + finalize()`).
 
 ---
 
@@ -66,10 +71,10 @@ private modalService = inject(ModalService);
 open(item: MyItem): void {
   const ref = this.modalService.openModal(
     MyDetailComponent,       // componente a renderizar
-    'nzLg',                  // tamaño: nz300 | nzXs | nzSm | nzMd | nzLg | nzXlg | nzXxl
+    'nzLg',                  // tamaño: nz300 | nzXs | nzSm | nzMd | nzMd2 | nzLg | nzXlg | nzXxl
     { padding: '1.5rem' },   // bodyStyle
     { data: item } as Dialog, // datos → accesibles vía inject(NZ_MODAL_DATA)
-    true,                    // mostrar icono de cierre
+    true,                    // isCloseIcon (mostrar X)
     // '900px'               // width custom (opcional, sobrescribe el del tamaño)
   );
 
@@ -78,6 +83,8 @@ open(item: MyItem): void {
   });
 }
 ```
+
+Firma real: `openModal(template, nzCol, bodyStyle, param, isCloseIcon = true, width?)`.
 
 ---
 
@@ -98,7 +105,7 @@ export class MyDetailComponent {
 
 ---
 
-## Valores retornados por showMessage()
+## Valores retornados por `showMessage()`
 
 | Resultado | Cuándo |
 |-----------|--------|
@@ -109,32 +116,105 @@ export class MyDetailComponent {
 
 ---
 
-## Iconos disponibles en InfoDialog (icon.name)
+## Iconos en `InfoDialog`
 
-`'info'` `'check'` `'error'` `'warning'` `'trash'` `'clock'` `'code'` `'more'` `'message'`
+`InfoDialog` admite dos vías mutuamente excluyentes:
 
-Color del icono via `icon.container` (clase Tailwind):
+### 1) `icon` — Font Awesome Pro
+
+`icon.name` es un `IconDefinition` (no un string), y `icon.container` es la clase Tailwind del color.
 
 ```typescript
-'text-green-500'  // éxito
-'text-rose-500'   // error
-'text-amber-500'  // advertencia
-'text-blue-500'   // información
-'text-red-500'    // peligro
+import {
+  faCircleCheck,
+  faCircleInfo,
+  faCircleXmark,
+  faTriangleExclamation,
+} from '@fortawesome/pro-solid-svg-icons';
+
+this.messages.showMessage({
+  icon: { name: faCircleXmark, container: 'text-rose-500' },
+  textBold: 'No se pudo guardar',
+  confirmButton: { text: 'Entendido' },
+  withClass: 'nzXs',
+  data: {},
+});
 ```
+
+Combinaciones usadas en el proyecto:
+
+| Tipo | Icono | Container |
+|---|---|---|
+| Éxito | `faCircleCheck` | `text-green-500` o `text-(--base-color-500)` |
+| Error | `faCircleXmark` | `text-rose-500` |
+| Advertencia | `faTriangleExclamation` | `text-amber-500` |
+| Información | `faCircleInfo` | `text-blue-500` |
+
+### 2) `img` — imagen PNG
+
+Para mensajes con ilustración (los atajos `success`/`warning`/`show` usan esto):
+
+```typescript
+this.messages.showMessage({
+  img: { src: '/message-icon/success.png', alt: 'Success' },
+  textBold: 'Guardado correctamente',
+  confirmButton: { text: 'Entendido' },
+  withClass: 'nzXs',
+  data: {},
+});
+```
+
+> No mezclar `icon` y `img` en el mismo `Dialog` — `InfoDialog` renderiza uno u otro según cuál esté presente.
+
+---
+
+## `Dialog` (campos)
+
+```typescript
+interface Dialog {
+  icon?:        { name?: IconDefinition; container: string };
+  img?:         { src?: string; alt: string };
+  text?:        string;
+  textBold?:    string;
+  subText?:     string;
+  gridButton?:  number;
+  confirmButton?: { text: string; icon?: string };
+  cancelButton?:  { text: string; icon?: string };
+  exitButton?:    { text: string; icon?: string };
+  callback?:    any;
+  data?:        any;
+  padding?:     string;
+  withClass?:   'nz300' | 'nzXs' | 'nzXXs' | 'nz2Xs' | 'nzSm' | 'nzMd' | 'nzLg' | 'nzXlg' | 'nzXxl';
+}
+```
+
+> El proyecto usa `textBold` (no `titleBold`). Si vienes de un fork viejo del modal-system, renombrar.
 
 ---
 
 ## Tamaños de modal
 
-Definir estas clases en `theme.less` del proyecto:
+Definir estas clases en `theme.less` del proyecto (todas presentes en `redcore-fondeador-xloan`):
 
 ```less
 .nz300 { width: 300px; }
 .nzXs  { width: 368px; }
 .nzSm  { width: 25.75rem; }
 .nzMd  { width: 36.25rem; }
+.nzMd2 { width: 680px; }
 .nzLg  { width: 55rem; }
 .nzXlg { width: 59rem; }
 .nzXxl { width: 73.75rem; }
 ```
+
+`Dialog.withClass` también acepta `'nzXXs'` y `'nz2Xs'`; si los necesitas, agregar la regla correspondiente en `theme.less`.
+
+---
+
+## Default values en `MessagesService`
+
+| Campo | Default | Notas |
+|---|---|---|
+| `withClass` | `'nzXs'` | si `params.withClass` viene vacío |
+| `padding`   | `'3rem 1.5rem 1.5rem 1.5rem'` | si `params.padding` viene vacío |
+| `confirmButton.text` (atajos) | `'Entendido'` | en `success/error/warning/show` |

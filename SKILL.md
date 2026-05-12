@@ -1,114 +1,96 @@
 ---
 name: angular-ao
 description: >
-  Estándares y patrones para proyectos Angular 21 standalone/zoneless con ng-zorro,
-  Tailwind v4 y @fortawesome/pro. Aplica automáticamente cuando el usuario trabaja
-  en código Angular — componentes, rutas, formularios, HTTP, modales.
+  Estandares y patrones para este proyecto Angular 21 standalone con zone.js,
+  signals, ng-zorro, Tailwind v4 y Font Awesome Pro. Usar cuando se trabaje en
+  componentes, rutas, formularios, HTTP, modales, estilos o UI de
+  redcore-fondeador-xloan.
 user-invocable: false
 ---
 
-# Angular 21 — Estándares AO
+# Angular AO
 
-Aplica estas reglas en CADA tarea Angular. No pedir confirmación; aplicarlas directamente.
+Aplica estas reglas en cada tarea Angular del proyecto. Adaptar lo existente antes de crear algo nuevo.
 
----
+## Principios del repo
 
-## Reglas obligatorias
+- Mantener el dominio de rutas y carpetas `fondeadores` salvo que el usuario pida explicitamente una plantilla generica.
+- No convertir rutas a `/admin` por defecto. La zona protegida actual vive bajo `/fondeadores`.
+- Usar los componentes, clases globales y servicios compartidos existentes antes de crear variantes nuevas.
+- `app.config.ts` usa `provideAnimations()` y zone.js. No proponer zoneless para este proyecto.
+- Orden de prioridad al mapear UI nueva (Figma → código): catálogo propio (`pages/component-lista/` y `shared/components`) → ng-zorro → custom. Crear un componente nuevo solo cuando ninguno de los anteriores cumple. Ver `CLAUDE.md` para el flujo de mapeo Figma completo.
 
-### Componentes
-- Siempre **standalone: true**. Nunca NgModules.
-- DI con **inject()** en el cuerpo de la clase. Solo usar constructor cuando se necesita `super()`.
-- **Control flow nativo**: `@if`, `@for`, `@switch`. Nunca `*ngIf`, `*ngFor`.
-- Iconos FA Pro: importar `FaIconComponent` en `imports[]` del componente. Sin viewProviders ni registro global.
+## Componentes
 
-### Signals
-- Estado local: **signal()** + `.set()` / `.update()`.
-- Valores derivados: **computed()** — sin side-effects.
-- Side-effects reactivos: **effect()** — solo en constructor.
-- Props de entrada: **input()** (reemplaza @Input). Eventos: **output()** (reemplaza @Output + EventEmitter).
+- Siempre standalone. Nunca crear NgModules.
+- DI con `inject()` en el cuerpo de la clase. Usar constructor solo para `super()` o `effect()`.
+- Control flow nativo: `@if`, `@for`, `@switch`. No importar `CommonModule` si solo se usan estas directivas.
+- Antes de quitar `CommonModule`, verificar que el template no use `[ngClass]`, `[ngStyle]`, `*ngIf`, `*ngFor` ni pipes como `async`.
+- Iconos FA Pro: importar `FaIconComponent` en `imports[]`, declarar iconos `readonly`, y usar `<fa-icon>`.
 
-### Routing
-- Lazy loading con **named export**: `export const FEATURE_ROUTES: Routes`
-- Guards como **CanActivateFn** funcional con `inject()`.
-- Hash routing: `provideRouter(routes, withHashLocation())`.
+## Signals
 
-### Formularios
-- Siempre **ReactiveFormsModule**. Nunca template-driven.
-- **FormControl tipado**: `new FormControl<string | null>(null)`.
-- Cargar catálogos con **forkJoin** antes de habilitar el form.
+- Estado local con `signal()` y `.set()` / `.update()`.
+- Derivados con `computed()` sin side effects.
+- Side effects reactivos con `effect()` solo en constructor.
+- Entrada/salida moderna con `input()` y `output()` cuando aplique.
+- Para llamadas HTTP, el patron usual es Observable -> subscribe -> signal, con `finalize()` para apagar `loading`.
 
-### HTTP
-- Servicios extienden **BaseHttpService** (ver references/http.md).
-- La URL base viene de `environment.apiUrl`.
-- Interceptores: **HttpInterceptorFn** funcional. Nunca de clase.
+## Routing
 
-### ng-zorro
-- Personalizar en **theme.less** SIEMPRE. Nunca en el CSS del componente.
-- `NzModalModule` en **app.config.ts** via `importProvidersFrom`.
-- Módulos ng-zorro: importar directamente en `imports[]` del componente.
+- `provideRouter(routes, withHashLocation())` esta activo.
+- Zona autenticada: `path: 'fondeadores'`, `component: MainLayoutComponent`, `canActivate: [authGuard]`.
+- Guards funcionales en `shared/guards/`.
+- Lazy loading con named export: `export const FEATURE_ROUTES: Routes`.
+- Usar `data: { title, backUrl }` para metadata de header/navegacion.
+- Arreglar rutas rotas, redirects y backUrl; no renombrar el dominio de negocio sin aprobacion.
 
-### Iconos
-- **Font Awesome Pro** para todo icono de contenido o acción.
-  - Importar el ícono desde el paquete de estilo deseado: `import { faTruck, faPlus } from '@fortawesome/pro-solid-svg-icons'`
-  - Exponer como propiedad readonly en la clase: `readonly faTruck = faTruck`
-  - Usar en template: `<fa-icon [icon]="faTruck" />`
-  - Importar `FaIconComponent` en el `imports[]` del componente (sin viewProviders)
-- **`<span nz-icon nzType="...">`** solo para iconos internos de ng-zorro (inputs, selects, etc.)
-- Para íconos interactivos: añadir clase `.icon-action`
+## Formularios y Loading UX
 
-### Modales
-- Usar **ModalService** y **MessagesService** (ver references/modal-system/).
-- El sistema de modales es idéntico en todos los proyectos.
-- Header de toda modal: clase `.modal-header` + `.modal-header__bar` + `.modal-header__title`.
+- Siempre Reactive Forms.
+- `floatingLabel` vive en `shared/directives/floating-label.directive.ts` y se estiliza con `.floating-layout` en `theme.less`.
+- Busquedas: `loading.set(true)` + `filterForm.disable()` + `[nzLoading]="loading()"` en el boton principal + `finalize()`.
+- Formularios que cargan catalogos: usar `<custom-skeleton type="input">` cuando los campos aun no pueden mostrarse.
+- Tablas cargando: usar `<custom-skeleton>` (default `type='table'`).
+- **Regla dura — toda interaccion con el backend debe ser visible y dejar datos frescos**: cualquier accion del usuario que dispare una llamada HTTP (search, create, edit, delete, aprobar, rechazar, cargar masivo, descargar, etc.) DEBE: (1) bloquear su disparador con `loading()` + `[nzLoading]` + `disable()` en el form/boton, (2) usar `finalize()` para apagar el loading siempre, y (3) al exito, **recargar la fuente de datos afectada (lista, tabla, detalle, KPIs) ANTES de mostrar `messages.success(...)`**. Nunca dejar al usuario sin feedback visible mientras la peticion vuela ni con datos desactualizados despues. Ver `references/loading-ux.md` seccion "Mutaciones".
 
-#### Ubicación según alcance
+## HTTP
 
-| ¿Dónde va la modal? | Criterio |
+- Servicios de feature extienden `BaseHttpService`.
+- Las URLs base vienen de `environment.url_fondeadores` en este proyecto. `AuthService` además consume `environment.url_core` y `environment.url_motor`.
+- `BaseHttpService` aplica `takeUntil(canceller.cancelAll$)`. El subject vive en `core/services/request-canceller.service.ts` y `AuthService.logout()` lo dispara para abortar peticiones en vuelo.
+- Tokens HTTP existentes: `SKIP_AUTH` y `SHOW_ERROR_MODAL` en `core/interceptors/http-context-tokens.ts`.
+- `errorInterceptor` trata `404` con `responseCode '404'` como lista vacía (`{ data: null }`), no como error.
+- Usar `forkJoin` para dependencias paralelas y `finalize()` para estado de loading.
+
+## Estilos
+
+- Tailwind v4 primero. Evitar `style=""` inline.
+- Variables CSS con sintaxis del proyecto: `text-(--label-text-color)`, `bg-(--base-color-50)`, `h-(--h-header)`.
+- Personalizar ng-zorro en `src/theme.less`, no en CSS de componente.
+- `::ng-deep` no se usa para ng-zorro. Para contenido proyectado propio (`ng-content`), preferir `ViewEncapsulation.None` con selectores scoped por wrapper.
+- Reutilizar clases globales: `.content-pages`, `.icon-action`, `.modal-header`, `.modal-footer`, `.custom-scrollbar`, `.shadow-header`, `[scrolltable]`, `btn-icon`.
+
+## Modales
+
+- Usar `ModalService` y `MessagesService`.
+- Modal exclusiva de una feature: `pages/fondeadores/<feature>/modals/`.
+- Modal reutilizable o generica: `shared/modals/`.
+- Tamanos disponibles via `theme.less`: `nz300`, `nzXs`, `nzSm`, `nzMd`, `nzMd2`, `nzLg`, `nzXlg`, `nzXxl`.
+
+## Referencias
+
+| Archivo | Cuando consultarlo |
 |---|---|
-| `pages/feature-name/modals/modal-name/` | Solo se usa dentro de esa feature |
-| `shared/modals/modal-name/` | Se reutiliza en 2+ features distintas o es genérica del sistema |
-
-```
-pages/
-└── fondeadores/
-    └── comprar-creditos/
-        ├── comprar-creditos.ts
-        └── modals/
-            └── confirmar-compra/      ← modal exclusiva de esta vista
-                ├── confirmar-compra.ts
-                └── confirmar-compra.html
-shared/
-└── modals/
-    └── cargue-masivo/                 ← modal reutilizable en múltiples features
-```
-
-**Regla**: si la modal solo tiene sentido dentro de una feature concreta, va en `pages/feature/modals/`. Moverla a `shared/modals/` solo cuando se necesite en una segunda feature distinta.
-
----
-
-## Stack del proyecto
-
-```
-Angular 21          standalone · zoneless · signals-first
-ng-zorro-antd       UI components
-Tailwind v4         utilidades + @theme tokens
-@fortawesome/pro    iconografía
-```
-
----
-
-## Documentación detallada
-
-Consultar en `references/` cuando se necesiten ejemplos completos:
-
-| Archivo | Cuándo consultarlo |
-|---------|-------------------|
-| `references/setup.md` | Configurar nuevo proyecto, app.config, aliases |
-| `references/componentes.md` | Esqueleto de componente, inject(), control flow |
-| `references/signals.md` | signal(), computed(), effect(), input(), output() |
-| `references/routing.md` | Lazy loading, guards, navegación |
-| `references/forms.md` | FormGroup, validación, disable/enable, forkJoin |
-| `references/http.md` | BaseHttpService, interceptores, AuthService |
-| `references/ngzorro.md` | Módulos, componentes, theme.less |
-| `references/icons.md` | Registro y uso de iconos |
-| `references/modal-system/` | Código copy-paste del sistema de modales |
+| `references/setup.md` | app.config, aliases, estructura real del repo |
+| `references/componentes.md` | standalone, inject, control flow, CommonModule |
+| `references/signals.md` | signals, computed, effect, Observable -> signal |
+| `references/routing.md` | `/fondeadores`, lazy loading, guards, backUrl |
+| `references/forms.md` | Reactive Forms, floatingLabel, loading en busquedas |
+| `references/http.md` | BaseHttpService, interceptores, tokens HTTP |
+| `references/ngzorro.md` | modulos ng-zorro, theme.less, nzLoading, btn-icon |
+| `references/icons.md` | FA Pro, `.icon-action`, clases de tamano/color |
+| `references/tailwind-y-css.md` | Tailwind v4, variables CSS, anti-inline styles |
+| `references/loading-ux.md` | skeletons y `[nzLoading]` |
+| `references/componentes-shared.md` | catalogo shared del proyecto |
+| `references/modal-system/` | sistema de modales copy-paste |

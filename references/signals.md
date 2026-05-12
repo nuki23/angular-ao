@@ -1,6 +1,6 @@
 # 03 — Signals
 
-Sistema reactivo nativo de Angular 17+. Reemplaza zone.js y es compatible con detección de cambios zoneless.
+Sistema reactivo nativo de Angular 17+. En este proyecto convive con zone.js + `provideAnimations()`; no proponer zoneless.
 
 ---
 

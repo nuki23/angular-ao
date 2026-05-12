@@ -69,6 +69,20 @@ ngOnInit() {
 </form>
 ```
 
+## Floating labels
+
+El proyecto usa la directiva `floatingLabel` en `shared/directives/floating-label.directive.ts`.
+La directiva agrega la clase `.floating-layout`, estilizada globalmente en `src/theme.less`.
+
+```html
+<nz-form-item floatingLabel>
+  <nz-form-label>No. lote</nz-form-label>
+  <nz-form-control>
+    <input nz-input formControlName="noLote" />
+  </nz-form-control>
+</nz-form-item>
+```
+
 ---
 
 ## Validación en submit
@@ -216,5 +230,49 @@ ngOnInit() {
     },
     error: () => this.loading.set(false),
   });
+}
+```
+
+## Busquedas con loading
+
+Replicar el patron de las vistas de fondeadores:
+
+```typescript
+buscar(): void {
+  this.loading.set(true);
+  this.filterForm.disable();
+
+  this.service
+    .list(this.filterForm.getRawValue())
+    .pipe(
+      finalize(() => {
+        this.loading.set(false);
+        this.filterForm.enable();
+      }),
+    )
+    .subscribe((page) => this.listOfData.set(page.data));
+}
+```
+
+```html
+<button
+  nz-button
+  nzType="primary"
+  type="button"
+  [disabled]="loading()"
+  [nzLoading]="loading()"
+  (click)="buscar()"
+>
+  Buscar
+</button>
+```
+
+Para formularios que cargan catalogos antes de mostrar los campos, usar:
+
+```html
+@if (loadingCatalogos()) {
+  <custom-skeleton type="input" [rows]="3" />
+} @else {
+  <!-- form real -->
 }
 ```

@@ -78,6 +78,8 @@ export class MyService extends BaseHttpService {
 
 > `@if/@for/@switch` reemplazan `*ngIf`, `*ngFor`, `ngSwitch`. No importar `CommonModule` para estas directivas.
 
+Antes de quitar `CommonModule`, revisar el template. Si usa `[ngClass]`, `[ngStyle]`, `*ngIf`, `*ngFor` o pipes como `async`, el import todavia puede ser necesario.
+
 ---
 
 ## FA Pro — iconos por componente
@@ -121,6 +123,20 @@ export class MyModalComponent {
   cancelar(): void { this.modal.close(); }
 }
 ```
+
+---
+
+## Estilos en templates
+
+Evitar `style=""` inline. Usar Tailwind v4 con la sintaxis del proyecto:
+
+```html
+<fa-icon [icon]="faEye" class="text-[18px] text-(--base-color-500)" />
+<div class="bg-(--base-color-50)"></div>
+<span class="text-(--label-text-color)">Texto</span>
+```
+
+Para personalizar componentes ng-zorro, usar `src/theme.less`.
 
 ---
 

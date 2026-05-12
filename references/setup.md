@@ -1,200 +1,104 @@
-# 01 — Setup: Angular 21 standalone / zoneless
+# 01 - Setup del proyecto
 
-## Crear proyecto
+Este repo es Angular 21 standalone con signals, ng-zorro, Tailwind v4, Font Awesome Pro y Vitest. Usa zone.js mediante `provideAnimations()`.
 
-```bash
-ng new my-app --standalone --routing --style=css
-```
+## app.config.ts
 
-Instalar dependencias del stack:
-
-```bash
-npm install ng-zorro-antd
-npm install tailwindcss @tailwindcss/vite   # Tailwind v4
-npm install @fortawesome/angular-fontawesome @fortawesome/fontawesome-svg-core
-npm install @fortawesome/pro-solid-svg-icons @fortawesome/pro-regular-svg-icons @fortawesome/pro-light-svg-icons
-```
-
-> **Font Awesome Pro requiere token NPM.** Agregar `.npmrc` en la raíz del proyecto:
-> ```
-> @fortawesome:registry=https://npm.fontawesome.com/
-> //npm.fontawesome.com/:_authToken=TU_TOKEN_FA_PRO
-> ```
-
----
-
-## app.config.ts — bootstrap sin NgModules
+Patron real del proyecto:
 
 ```typescript
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
-import { provideRouter, withHashLocation }         from '@angular/router';
-import { provideHttpClient, withInterceptors }     from '@angular/common/http';
-import { en_US, provideNzI18n }                   from 'ng-zorro-antd/i18n';
-import { provideNzIcons }                          from 'ng-zorro-antd/icon';
-import { NzModalModule }                           from 'ng-zorro-antd/modal';
-import { registerLocaleData }                      from '@angular/common';
-import en from '@angular/common/locales/en';
+import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideRouter, withHashLocation } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
-import { routes }          from './app.routes';
-import { icons }           from './icons-provider';
-import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { errorInterceptor } from './core/interceptors/error.interceptor';
-
-registerLocaleData(en);
+import { routes } from './app.routes';
+import { authInterceptor } from '@core/interceptors/auth.interceptor';
+import { errorInterceptor } from '@core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withHashLocation()),   // URLs con # → /#/admin/ruta
-    provideHttpClient(
-      withInterceptors([authInterceptor, errorInterceptor])
-    ),
-    provideNzIcons(icons),           // iconos Ant Design globales
-    provideNzI18n(en_US),            // idioma de componentes (datepicker, paginación, etc.)
-    importProvidersFrom(NzModalModule),  // necesario para que NzModalService funcione
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(routes, withHashLocation()),
+    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideNzI18n(en_US),
+    importProvidersFrom(NzModalModule),
+    provideAnimations(),
   ],
 };
 ```
 
----
+No agregar configuracion zoneless en este proyecto salvo solicitud explicita.
 
-## icons-provider.ts — registro de iconos Ant Design
+## Estructura de carpetas
 
-Agregar aquí cada icono de Ant Design que ng-zorro necesite internamente:
-
-```typescript
-// src/app/icons-provider.ts
-import {
-  MenuFoldOutline,
-  MenuUnfoldOutline,
-  DashboardOutline,
-  FormOutline,
-  // agregar más según necesidad
-} from '@ant-design/icons-angular/icons';
-
-export const icons = [MenuFoldOutline, MenuUnfoldOutline, DashboardOutline, FormOutline];
-```
-
----
-
-## Font Awesome Pro — iconos en componentes
-
-Los iconos FA Pro se importan directamente en cada componente. No se requiere registro global.
-
-**En el componente:**
-```typescript
-import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowLeft, faEye, faEllipsis } from '@fortawesome/pro-solid-svg-icons';
-
-@Component({
-  imports: [FaIconComponent, /* ... */],
-})
-export class MyComponent {
-  readonly faArrowLeft = faArrowLeft;
-  readonly faEye       = faEye;
-  readonly faEllipsis  = faEllipsis;
-}
-```
-
-**En el template:**
-```html
-<fa-icon [icon]="faArrowLeft" />
-<fa-icon [icon]="faEye" class="icon-action" />
-```
-
-> Exponer cada icono como propiedad `readonly` de la clase. Importar `FaIconComponent` en `imports[]`, no en `viewProviders`.
-
----
-
-## Zoneless (sin zone.js)
-
-Eliminar zone.js del proyecto:
-
-```typescript
-// main.ts
-import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { AppComponent } from './app/app.ts';
-
-bootstrapApplication(AppComponent, appConfig).catch(console.error);
-```
-
-En `angular.json` quitar `zone.js` de `polyfills` si se usa modo experimental zoneless:
-```json
-"polyfills": []
-```
-
-Y en `app.config.ts` agregar el provider experimental:
-```typescript
-import { provideExperimentalZonelessChangeDetection } from '@angular/core';
-providers: [
-  provideExperimentalZonelessChangeDetection(),
-  // ...resto
-]
-```
-
----
-
-## Estructura de carpetas recomendada
-
-```
+```text
 src/app/
-├── core/                       # Código transversal (guards, interceptors, servicios globales)
-│   ├── guards/
-│   ├── interceptors/
-│   ├── models/
-│   └── services/
-│       └── modals/             # modal.service.ts, messages.service.ts
-├── layout/                     # Componentes de layout (header, sidebar, main-layout)
-├── pages/                      # Features de la app
-│   └── feature-name/
-│       ├── feature-name.ts
-│       ├── feature-name.routes.ts
-│       ├── feature-name.html
-│       ├── feature-name.css
-│       └── data-access/
-│           ├── feature.model.ts
-│           └── feature.service.ts
-└── shared/
-    ├── components/             # Componentes reutilizables
-    └── modals/
-        └── info-dialog/        # Sistema de modales (ver modal-system/)
+|-- core/
+|   |-- constants/
+|   |-- interceptors/
+|   |-- models/
+|   |-- services/
+|   |   `-- modals/
+|   `-- utils/
+|-- pages/
+|   |-- auth/
+|   |-- layout/
+|   |-- component-lista/
+|   |-- example/
+|   `-- fondeadores/
+|       |-- dashboard/
+|       |-- comprar-creditos/
+|       |-- creditos-comprados/
+|       `-- recompras/
+`-- shared/
+    |-- animations/
+    |-- components/
+    |-- directives/
+    |-- guards/
+    |-- modals/
+    `-- transitions/
 ```
 
----
+Para nuevas features del dominio actual, ubicar bajo `src/app/pages/fondeadores/<feature>/`.
 
-## Aliases de TypeScript (tsconfig.json)
+## Aliases TypeScript
+
+`tsconfig.json` define:
 
 ```json
 {
-  "compilerOptions": {
-    "paths": {
-      "@core/*":   ["src/app/core/*"],
-      "@shared/*": ["src/app/shared/*"],
-      "@env":      ["src/environments/environment.ts"]
-    }
+  "paths": {
+    "@core/*": ["src/app/core/*"],
+    "@shared/*": ["src/app/shared/*"],
+    "@pages/*": ["src/app/pages/*"],
+    "@env/*": ["src/environments/*"]
   }
 }
 ```
 
----
+Usar estos aliases en imports de app. Para imports relativos dentro de una misma feature, mantener rutas relativas cortas.
 
-## theme.less — integración Tailwind + ng-zorro
+## Styles globales
 
-```less
-// src/theme.less
-@import "../node_modules/ng-zorro-antd/ng-zorro-antd.less";
+`angular.json` carga:
 
-// Sobreescribir el color primario de ng-zorro
-@blue-base: #14b8a6;   // teal — cambiar según brand del proyecto
-@border-radius-base: 0.75rem;
-@input-height-base: 28px;
-@font-size-base: 0.875rem;
+```json
+"styles": ["src/theme.less", "src/styles.css"]
 ```
 
-En `angular.json`, aplicar el tema:
-```json
-"styles": [
-  { "input": "src/theme.less", "bundleName": "theme", "inject": true },
-  "src/styles.css"
-]
+- `src/theme.less`: personalizacion de ng-zorro, botones, floating labels, tablas `nz-table`, modales y shimmer de `[nzLoading]`.
+- `src/styles.css`: Tailwind v4, tokens `@theme` y clases globales del stack (`.content-pages`, `.icon-action`, `.modal-header`, `.modal-footer`, `[scrolltable]`).
+
+No recrear estas reglas en componentes si ya existen globalmente.
+
+## Comandos
+
+```bash
+npm start
+npm run build
+npm test
+npx prettier --write .
 ```
